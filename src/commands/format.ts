@@ -4,7 +4,7 @@ import { input, select, password } from '@inquirer/prompts';
 import { FormatOptions, Provider, PROVIDER_CONFIGS } from '../types.js';
 import { getConfig, setProvider, setApiKey } from '../lib/config.js';
 import { copyToClipboard } from '../lib/clipboard.js';
-import { formatPrompt, getApiKey, hasApiKey } from '../providers/index.js';
+import { formatPrompt, getApiKey, hasApiKey, ApiKeyError } from '../providers/index.js';
 import { loadProjectContext, formatContextForPrompt } from '../lib/project-context.js';
 
 async function interactiveSetup(): Promise<{ provider: Provider; apiKey: string }> {
@@ -80,30 +80,54 @@ export async function formatCommand(
   const projectContext = loadProjectContext();
   const contextString = projectContext ? formatContextForPrompt(projectContext) : undefined;
 
-  // Format the prompt
-  const spinner = ora('Formatting prompt...').start();
+  // Format the prompt with retry on auth errors
+  while (true) {
+    const spinner = ora('Formatting prompt...').start();
 
-  try {
-    const formattedPrompt = await formatPrompt(userPrompt, provider, apiKey, detailed, contextString);
-    spinner.stop();
+    try {
+      const formattedPrompt = await formatPrompt(userPrompt, provider, apiKey, detailed, contextString);
+      spinner.stop();
 
-    // Output the formatted prompt
-    console.log('\n' + chalk.cyan('Formatted prompt:') + '\n');
-    console.log(formattedPrompt);
-    console.log();
+      // Output the formatted prompt
+      console.log('\n' + chalk.cyan('Formatted prompt:') + '\n');
+      console.log(formattedPrompt);
+      console.log();
 
-    // Copy to clipboard unless --no-copy is set
-    if (!options.noCopy) {
-      const copied = await copyToClipboard(formattedPrompt);
-      if (copied) {
-        console.log(chalk.green('✓ Copied to clipboard'));
-      } else {
-        console.log(chalk.yellow('⚠ Could not copy to clipboard'));
+      // Copy to clipboard unless --no-copy is set
+      if (!options.noCopy) {
+        const copied = await copyToClipboard(formattedPrompt);
+        if (copied) {
+          console.log(chalk.green('✓ Copied to clipboard'));
+        } else {
+          console.log(chalk.yellow('⚠ Could not copy to clipboard'));
+        }
       }
+      break;
+    } catch (error) {
+      spinner.stop();
+
+      if (error instanceof ApiKeyError) {
+        console.error(chalk.red('\n' + error.message));
+        console.log(chalk.yellow('Please enter a valid API key.\n'));
+
+        const newApiKey = await password({
+          message: 'Paste your API key:',
+          mask: '*',
+        });
+
+        if (!newApiKey.trim()) {
+          console.error(chalk.red('Error: API key cannot be empty'));
+          process.exit(1);
+        }
+
+        apiKey = newApiKey;
+        setApiKey(provider, apiKey);
+        console.log(chalk.green('✓ API key saved\n'));
+        continue;
+      }
+
+      console.error(chalk.red('Error formatting prompt:'), (error as Error).message);
+      process.exit(1);
     }
-  } catch (error) {
-    spinner.stop();
-    console.error(chalk.red('Error formatting prompt:'), (error as Error).message);
-    process.exit(1);
   }
 }

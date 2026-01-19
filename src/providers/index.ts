@@ -6,7 +6,14 @@ import { Provider, PROVIDER_CONFIGS } from '../types.js';
 import { getSystemPrompt } from '../lib/prompts.js';
 import { getStoredApiKey, hasStoredApiKey } from '../lib/config.js';
 
-function getFriendlyErrorMessage(error: unknown, provider: Provider): string {
+export class ApiKeyError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ApiKeyError';
+  }
+}
+
+function getFriendlyErrorMessage(error: unknown, provider: Provider): { message: string; isAuthError: boolean } {
   const envVar = PROVIDER_CONFIGS[provider].envVar;
 
   // Handle API errors from the AI SDK
@@ -14,20 +21,20 @@ function getFriendlyErrorMessage(error: unknown, provider: Provider): string {
     const status = error.statusCode;
 
     if (status === 401 || status === 403) {
-      return `Invalid API key for ${provider}. Check your ${envVar}.`;
+      return { message: `Invalid API key for ${provider}.`, isAuthError: true };
     }
 
     if (status === 429) {
-      return 'Rate limited. Wait a moment and try again.';
+      return { message: 'Rate limited. Wait a moment and try again.', isAuthError: false };
     }
 
     if (status === 500 || status === 502 || status === 503) {
-      return `${provider} service is temporarily unavailable. Try again later.`;
+      return { message: `${provider} service is temporarily unavailable. Try again later.`, isAuthError: false };
     }
 
     // Return the API error message if available
     if (error.message) {
-      return error.message;
+      return { message: error.message, isAuthError: false };
     }
   }
 
@@ -36,17 +43,17 @@ function getFriendlyErrorMessage(error: unknown, provider: Provider): string {
     const message = error.message.toLowerCase();
 
     if (message.includes('fetch failed') || message.includes('network') || message.includes('econnrefused')) {
-      return 'Network error. Check your internet connection.';
+      return { message: 'Network error. Check your internet connection.', isAuthError: false };
     }
 
     if (message.includes('timeout') || message.includes('timed out')) {
-      return 'Request timed out. Try again.';
+      return { message: 'Request timed out. Try again.', isAuthError: false };
     }
 
-    return error.message;
+    return { message: error.message, isAuthError: false };
   }
 
-  return 'An unexpected error occurred.';
+  return { message: 'An unexpected error occurred.', isAuthError: false };
 }
 
 export function hasApiKey(provider: Provider): boolean {
@@ -118,6 +125,10 @@ export async function formatPrompt(
 
     return text;
   } catch (error) {
-    throw new Error(getFriendlyErrorMessage(error, provider));
+    const { message, isAuthError } = getFriendlyErrorMessage(error, provider);
+    if (isAuthError) {
+      throw new ApiKeyError(message);
+    }
+    throw new Error(message);
   }
 }
