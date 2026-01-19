@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import chalk from 'chalk';
 import { formatCommand } from './commands/format.js';
 import { configCommand } from './commands/config.js';
 import { initCommand } from './commands/init.js';
@@ -7,14 +8,14 @@ const program = new Command();
 
 program
   .name('prompt-fmt')
-  .description('Transform casual prompts into well-formatted prompts optimized for Claude Code')
+  .description('Transform casual prompts into well-formatted prompts for AI coding assistants')
   .version('1.0.0')
-  .argument('[prompt]', 'The prompt to format')
-  .option('-p, --provider <provider>', 'LLM provider (openai, anthropic, google)')
-  .option('--api-key <key>', 'API key (overrides environment variable)')
-  .option('--detailed', 'Use detailed mode (numbered steps, edge cases)')
-  .option('--concise', 'Use concise mode (brief but clear, default)')
-  .option('--no-copy', 'Do not copy result to clipboard')
+  .argument('[prompt]', 'prompt to format')
+  .option('-p, --provider <name>', 'google, anthropic, or openai')
+  .option('--api-key <key>', 'API key (or set env var)')
+  .option('--detailed', 'verbose output with steps')
+  .option('--concise', 'brief output (default)')
+  .option('--no-copy', 'skip clipboard')
   .action(async (prompt, options) => {
     await formatCommand(prompt, {
       provider: options.provider,
@@ -26,28 +27,35 @@ program
   });
 
 program
-  .command('config')
-  .description('Manage configuration')
-  .option('--show', 'Show current configuration')
-  .option('--set-provider <provider>', 'Set default provider (openai, anthropic, google)')
-  .option('--set-verbosity <verbosity>', 'Set default verbosity (concise, detailed)')
-  .action((options) => {
-    configCommand(options);
-  });
-
-program
   .command('init')
-  .description('Initialize project context for better prompts')
-  .option('-f, --force', 'Reinitialize even if config exists')
+  .description('detect project language/framework')
+  .option('-f, --force', 'reinitialize')
   .action(async (options) => {
     await initCommand(options);
   });
 
 program
-  .command('help')
-  .description('Show help information')
-  .action(() => {
-    program.help();
+  .command('config')
+  .description('view/set configuration')
+  .option('--show', 'show current config')
+  .option('--set-provider <name>', 'set default provider')
+  .option('--set-verbosity <level>', 'set concise or detailed')
+  .action((options) => {
+    configCommand(options);
   });
+
+program.addHelpText('after', `
+${chalk.cyan('Examples:')}
+  $ prompt-fmt "fix the login bug"
+  $ prompt-fmt "add auth" --detailed
+  $ prompt-fmt "refactor" -p anthropic
+  $ prompt-fmt init
+  $ prompt-fmt config --show
+
+${chalk.cyan('Environment:')}
+  GOOGLE_GENERATIVE_AI_API_KEY    Google Gemini (default)
+  ANTHROPIC_API_KEY               Anthropic Claude
+  OPENAI_API_KEY                  OpenAI GPT
+`);
 
 program.parse();
