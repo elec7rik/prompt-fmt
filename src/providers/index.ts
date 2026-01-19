@@ -123,6 +123,25 @@ function getModel(provider: Provider, apiKey: string) {
   }
 }
 
+export async function validateApiKey(provider: Provider, apiKey: string): Promise<void> {
+  const model = getModel(provider, apiKey);
+
+  try {
+    // Make a minimal API call to validate the key
+    await generateText({
+      model,
+      prompt: 'hi',
+      maxTokens: 1,
+    });
+  } catch (error) {
+    const { message, isAuthError } = getFriendlyErrorMessage(error, provider);
+    if (isAuthError) {
+      throw new ApiKeyError(message);
+    }
+    throw new Error(message);
+  }
+}
+
 export async function formatPrompt(
   input: string,
   provider: Provider,

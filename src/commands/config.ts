@@ -1,8 +1,10 @@
+import ora from 'ora';
 import chalk from 'chalk';
 import { password } from '@inquirer/prompts';
 import { Provider, Verbosity, PROVIDER_CONFIGS } from '../types.js';
 import { getConfig, setProvider, setVerbosity, getConfigPath, setApiKey, hasStoredApiKey } from '../lib/config.js';
 import { loadProjectContext, getProjectConfigPath } from '../lib/project-context.js';
+import { validateApiKey, ApiKeyError } from '../providers/index.js';
 
 interface ConfigOptions {
   show?: boolean;
@@ -39,19 +41,41 @@ export async function configCommand(options: ConfigOptions): Promise<void> {
     console.log(chalk.dim(`This will be stored securely in your config file.`));
     console.log(chalk.dim(`Alternative: set ${envVar} environment variable.\n`));
 
-    const apiKey = await password({
-      message: 'Paste your API key:',
-      mask: '*',
-    });
+    // Loop until valid key is provided or user cancels
+    while (true) {
+      const apiKey = await password({
+        message: 'Paste your API key:',
+        mask: '*',
+      });
 
-    if (!apiKey.trim()) {
-      console.error(chalk.red('Error: API key cannot be empty'));
-      process.exit(1);
+      if (!apiKey.trim()) {
+        console.error(chalk.red('Error: API key cannot be empty'));
+        process.exit(1);
+      }
+
+      // Validate the API key before saving
+      const spinner = ora(`Validating API key for ${provider}...`).start();
+
+      try {
+        await validateApiKey(provider, apiKey);
+        spinner.stop();
+        setApiKey(provider, apiKey);
+        console.log(chalk.green(`\n✓ API key validated and saved for ${provider}`));
+        return;
+      } catch (error) {
+        spinner.stop();
+
+        if (error instanceof ApiKeyError) {
+          console.error(chalk.red('\n' + error.message));
+          console.log(chalk.yellow('Please enter a valid API key.\n'));
+          continue;
+        }
+
+        // For non-auth errors, show the error and exit
+        console.error(chalk.red('\nError validating API key:'), (error as Error).message);
+        process.exit(1);
+      }
     }
-
-    setApiKey(provider, apiKey);
-    console.log(chalk.green(`\n✓ API key saved for ${provider}`));
-    return;
   }
 
   // If --set-provider is specified
