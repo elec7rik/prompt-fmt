@@ -1,0 +1,39 @@
+{
+  "name": "prompt-fmt",
+  "version": "1.0.0",
+  "description": "Transform casual prompts into well-formatted prompts optimized for Claude Code",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "prompt-fmt": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": ["cli", "prompt", "llm", "claude", "ai"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ai": "^4.0.0",
+    "@ai-sdk/openai": "^1.0.0",
+    "@ai-sdk/anthropic": "^1.0.0",
+    "@ai-sdk/google": "^1.0.0",
+    "commander": "^12.0.0",
+    "@inquirer/prompts": "^7.0.0",
+    "clipboardy": "^4.0.0",
+    "conf": "^13.0.0",
+    "ora": "^8.0.0",
+    "chalk": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.0.0",
+    "@types/node": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
