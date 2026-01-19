@@ -64,7 +64,7 @@ export function configCommand(options: ConfigOptions): void {
       console.log(`  Dependencies: ${chalk.white(projectContext.dependencies.join(', '))}`);
     }
   } else {
-    console.log(chalk.dim("\nProject context: (not initialized - run 'prompt-fmt init')"));
+    console.log(chalk.dim("\nProject context: (not initialized - run 'prompt-formatter init')"));
   }
 
   console.log(chalk.dim(`\n  Global config:  ${getConfigPath()}`));

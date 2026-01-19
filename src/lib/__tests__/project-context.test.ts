@@ -17,7 +17,7 @@ describe('project-context', () => {
 
   beforeEach(() => {
     // Create a temporary directory for each test
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prompt-fmt-test-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prompt-formatter-test-'));
     originalCwd = process.cwd();
     process.chdir(tempDir);
   });
@@ -770,7 +770,7 @@ dependencies:
     });
 
     it('returns null for invalid JSON', () => {
-      fs.writeFileSync(path.join(tempDir, '.prompt-fmt.json'), 'invalid json');
+      fs.writeFileSync(path.join(tempDir, '.prompt-formatter.json'), 'invalid json');
       const result = loadProjectContext();
       expect(result).toBeNull();
     });
@@ -780,7 +780,7 @@ dependencies:
     it('returns path in current directory', () => {
       const result = getProjectConfigPath();
       // Use realpath to handle macOS /private/var symlink
-      const expectedPath = path.join(fs.realpathSync(tempDir), '.prompt-fmt.json');
+      const expectedPath = path.join(fs.realpathSync(tempDir), '.prompt-formatter.json');
       expect(result).toBe(expectedPath);
     });
   });

@@ -13,7 +13,7 @@ const schema = {
 };
 
 const config = new Conf<Config>({
-  projectName: 'prompt-fmt',
+  projectName: 'prompt-formatter',
   schema,
 });
 

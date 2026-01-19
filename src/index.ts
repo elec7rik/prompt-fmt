@@ -7,7 +7,7 @@ import { initCommand } from './commands/init.js';
 const program = new Command();
 
 program
-  .name('prompt-fmt')
+  .name('prompt-formatter')
   .description('Transform casual prompts into well-formatted prompts for AI coding assistants')
   .version('1.0.0')
   .argument('[prompt]', 'prompt to format')
@@ -46,11 +46,11 @@ program
 
 program.addHelpText('after', `
 ${chalk.cyan('Examples:')}
-  $ prompt-fmt "fix the login bug"
-  $ prompt-fmt "add auth" --detailed
-  $ prompt-fmt "refactor" -p anthropic
-  $ prompt-fmt init
-  $ prompt-fmt config --show
+  $ prompt-formatter "fix the login bug"
+  $ prompt-formatter "add auth" --detailed
+  $ prompt-formatter "refactor" -p anthropic
+  $ prompt-formatter init
+  $ prompt-formatter config --show
 
 ${chalk.cyan('Environment:')}
   GOOGLE_GENERATIVE_AI_API_KEY    Google Gemini (default)

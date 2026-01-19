@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ProjectContext } from '../types.js';
 
-const CONFIG_FILENAME = '.prompt-fmt.json';
+const CONFIG_FILENAME = '.prompt-formatter.json';
 
 export function getProjectConfigPath(): string {
   return path.join(process.cwd(), CONFIG_FILENAME);
