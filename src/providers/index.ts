@@ -1,9 +1,52 @@
-import { generateText } from 'ai';
+import { generateText, APICallError } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { Provider, PROVIDER_CONFIGS } from '../types.js';
 import { getSystemPrompt } from '../lib/prompts.js';
+
+function getFriendlyErrorMessage(error: unknown, provider: Provider): string {
+  const envVar = PROVIDER_CONFIGS[provider].envVar;
+
+  // Handle API errors from the AI SDK
+  if (error instanceof APICallError) {
+    const status = error.statusCode;
+
+    if (status === 401 || status === 403) {
+      return `Invalid API key for ${provider}. Check your ${envVar}.`;
+    }
+
+    if (status === 429) {
+      return 'Rate limited. Wait a moment and try again.';
+    }
+
+    if (status === 500 || status === 502 || status === 503) {
+      return `${provider} service is temporarily unavailable. Try again later.`;
+    }
+
+    // Return the API error message if available
+    if (error.message) {
+      return error.message;
+    }
+  }
+
+  // Handle network errors
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+
+    if (message.includes('fetch failed') || message.includes('network') || message.includes('econnrefused')) {
+      return 'Network error. Check your internet connection.';
+    }
+
+    if (message.includes('timeout') || message.includes('timed out')) {
+      return 'Request timed out. Try again.';
+    }
+
+    return error.message;
+  }
+
+  return 'An unexpected error occurred.';
+}
 
 export function hasApiKey(provider: Provider): boolean {
   const envVar = PROVIDER_CONFIGS[provider].envVar;
@@ -54,11 +97,15 @@ export async function formatPrompt(
   const model = getModel(provider, apiKey);
   const systemPrompt = getSystemPrompt(detailed, projectContext);
 
-  const { text } = await generateText({
-    model,
-    system: systemPrompt,
-    prompt: input,
-  });
+  try {
+    const { text } = await generateText({
+      model,
+      system: systemPrompt,
+      prompt: input,
+    });
 
-  return text;
+    return text;
+  } catch (error) {
+    throw new Error(getFriendlyErrorMessage(error, provider));
+  }
 }

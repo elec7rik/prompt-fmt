@@ -13,9 +13,9 @@ async function interactiveSetup(): Promise<{ provider: Provider; apiKey: string 
   const provider = await select<Provider>({
     message: 'Select your LLM provider:',
     choices: [
-      { value: 'google' as Provider, name: 'Google (Gemini)' },
-      { value: 'anthropic' as Provider, name: 'Anthropic (Claude)' },
-      { value: 'openai' as Provider, name: 'OpenAI (GPT)' },
+      { value: 'google' as Provider, name: 'Google Gemini (gemini-2.5-flash) - free tier available' },
+      { value: 'anthropic' as Provider, name: 'Anthropic Claude (claude-sonnet-4) - requires paid credits' },
+      { value: 'openai' as Provider, name: 'OpenAI GPT (gpt-4o-mini) - requires paid credits' },
     ],
   });
 
