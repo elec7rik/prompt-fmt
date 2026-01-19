@@ -38,9 +38,15 @@ function getFriendlyErrorMessage(error: unknown, provider: Provider): { message:
     }
   }
 
-  // Handle network errors
+  // Handle other errors
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
+
+    // Check for auth-related error messages (covers various provider error formats)
+    if (message.includes('api key') || message.includes('invalid key') ||
+        message.includes('unauthorized') || message.includes('authentication')) {
+      return { message: `Invalid API key for ${provider}.`, isAuthError: true };
+    }
 
     if (message.includes('fetch failed') || message.includes('network') || message.includes('econnrefused')) {
       return { message: 'Network error. Check your internet connection.', isAuthError: false };
