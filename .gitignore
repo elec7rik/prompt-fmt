@@ -1,6 +1,9 @@
 node_modules/
 dist/
+bin/
+releases/
 *.log
+*.bun-build
 .DS_Store
 .env
 .env.*
