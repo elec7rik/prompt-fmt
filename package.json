@@ -1,6 +1,6 @@
 {
   "name": "prompt-formatter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Transform casual prompts into well-formatted prompts optimized for Claude Code",
   "type": "module",
   "main": "dist/index.js",

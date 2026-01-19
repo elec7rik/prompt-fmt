@@ -9,7 +9,7 @@ const program = new Command();
 program
   .name('prompt-formatter')
   .description('Transform casual prompts into well-formatted prompts for AI coding assistants')
-  .version('1.0.0')
+  .version('1.0.1')
   .argument('[prompt]', 'prompt to format')
   .option('-p, --provider <name>', 'google, anthropic, or openai')
   .option('--api-key <key>', 'API key (or set env var)')
