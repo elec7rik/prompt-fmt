@@ -141,7 +141,23 @@ prompt-formatter config --set-verbosity detailed
 
 ## API Keys
 
-Set your API key as an environment variable:
+### Secure Storage (Recommended)
+
+Store your API key securely in the config file:
+
+```bash
+# Set API key for current provider (prompts securely, validates before saving)
+prompt-formatter config --set-api-key
+
+# Set API key for a specific provider
+prompt-formatter config --set-api-key google
+```
+
+This avoids exposing keys in shell history and validates the key before saving.
+
+### Environment Variables
+
+Alternatively, set your API key as an environment variable:
 
 ```bash
 # Google Gemini (default, free tier available)
@@ -154,11 +170,11 @@ export ANTHROPIC_API_KEY=your-key
 export OPENAI_API_KEY=your-key
 ```
 
-Or pass directly:
+### Key Priority
 
-```bash
-prompt-formatter "fix bug" --api-key your-key --provider google
-```
+1. Stored config (via `config --set-api-key`)
+2. Environment variable
+3. Interactive prompt (first-time setup)
 
 ## Commands
 
@@ -167,6 +183,8 @@ prompt-formatter "fix bug" --api-key your-key --provider google
 | `prompt-formatter [prompt]` | Format a prompt |
 | `prompt-formatter init` | Initialize project context |
 | `prompt-formatter config --show` | Show current configuration |
+| `prompt-formatter config --set-api-key [provider]` | Set API key securely |
+| `prompt-formatter config --set-provider <name>` | Set default provider |
 | `prompt-formatter help` | Show help information |
 
 ## License
