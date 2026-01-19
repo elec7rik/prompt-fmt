@@ -4,6 +4,13 @@ Transform casual prompts into well-formatted prompts optimized for AI coding ass
 
 ## Installation
 
+### Homebrew (macOS/Linux)
+
+```bash
+brew tap elec7rik/prompt-formatter
+brew install prompt-formatter
+```
+
 ### npm (requires Node.js 18+)
 
 ```bash
