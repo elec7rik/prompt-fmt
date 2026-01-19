@@ -1,5 +1,5 @@
 {
-  "name": "prompt-fmt",
+  "name": "prompt-formatter",
   "version": "1.0.0",
   "description": "Transform casual prompts into well-formatted prompts optimized for Claude Code",
   "type": "module",
