@@ -17,6 +17,11 @@ export interface ProjectContext {
 export interface Config {
   provider: Provider;
   verbosity: Verbosity;
+  apiKeys?: {
+    openai?: string;
+    anthropic?: string;
+    google?: string;
+  };
 }
 
 export interface FormatOptions {

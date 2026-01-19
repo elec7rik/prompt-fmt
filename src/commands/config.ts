@@ -1,18 +1,59 @@
 import chalk from 'chalk';
-import { Provider, Verbosity } from '../types.js';
-import { getConfig, setProvider, setVerbosity, getConfigPath } from '../lib/config.js';
+import { password } from '@inquirer/prompts';
+import { Provider, Verbosity, PROVIDER_CONFIGS } from '../types.js';
+import { getConfig, setProvider, setVerbosity, getConfigPath, setApiKey, hasStoredApiKey } from '../lib/config.js';
 import { loadProjectContext, getProjectConfigPath } from '../lib/project-context.js';
 
 interface ConfigOptions {
   show?: boolean;
   setProvider?: string;
   setVerbosity?: string;
+  setApiKey?: string | boolean;
 }
 
 const VALID_PROVIDERS: Provider[] = ['openai', 'anthropic', 'google'];
 const VALID_VERBOSITIES: Verbosity[] = ['concise', 'detailed'];
 
-export function configCommand(options: ConfigOptions): void {
+export async function configCommand(options: ConfigOptions): Promise<void> {
+  // If --set-api-key is specified
+  if (options.setApiKey !== undefined) {
+    const config = getConfig();
+    // Determine which provider to set the key for
+    let provider: Provider;
+    if (typeof options.setApiKey === 'string') {
+      const requestedProvider = options.setApiKey.toLowerCase() as Provider;
+      if (!VALID_PROVIDERS.includes(requestedProvider)) {
+        console.error(
+          chalk.red(`Invalid provider: ${options.setApiKey}. Valid options: ${VALID_PROVIDERS.join(', ')}`)
+        );
+        process.exit(1);
+      }
+      provider = requestedProvider;
+    } else {
+      // Use current default provider
+      provider = config.provider;
+    }
+
+    const envVar = PROVIDER_CONFIGS[provider].envVar;
+    console.log(chalk.cyan(`\nSet API key for ${provider}\n`));
+    console.log(chalk.dim(`This will be stored securely in your config file.`));
+    console.log(chalk.dim(`Alternative: set ${envVar} environment variable.\n`));
+
+    const apiKey = await password({
+      message: 'Paste your API key:',
+      mask: '*',
+    });
+
+    if (!apiKey.trim()) {
+      console.error(chalk.red('Error: API key cannot be empty'));
+      process.exit(1);
+    }
+
+    setApiKey(provider, apiKey);
+    console.log(chalk.green(`\n✓ API key saved for ${provider}`));
+    return;
+  }
+
   // If --set-provider is specified
   if (options.setProvider) {
     const provider = options.setProvider.toLowerCase() as Provider;
@@ -46,6 +87,24 @@ export function configCommand(options: ConfigOptions): void {
   console.log(chalk.cyan('\nCurrent configuration:\n'));
   console.log(`  Provider:  ${chalk.white(config.provider)}`);
   console.log(`  Verbosity: ${chalk.white(config.verbosity)}`);
+
+  // Show API key status for all providers
+  console.log(chalk.cyan('\nAPI keys:\n'));
+  for (const provider of VALID_PROVIDERS) {
+    const envVar = PROVIDER_CONFIGS[provider].envVar;
+    const hasStored = hasStoredApiKey(provider);
+    const hasEnv = !!process.env[envVar];
+
+    let status: string;
+    if (hasStored) {
+      status = chalk.green('configured (stored)');
+    } else if (hasEnv) {
+      status = chalk.green('configured (env)');
+    } else {
+      status = chalk.dim('not set');
+    }
+    console.log(`  ${provider.padEnd(10)} ${status}`);
+  }
 
   // Show project context if available
   const projectContext = loadProjectContext();

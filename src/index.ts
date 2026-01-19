@@ -40,8 +40,9 @@ program
   .option('--show', 'show current config')
   .option('--set-provider <name>', 'set default provider')
   .option('--set-verbosity <level>', 'set concise or detailed')
-  .action((options) => {
-    configCommand(options);
+  .option('--set-api-key [provider]', 'set API key (prompts securely)')
+  .action(async (options) => {
+    await configCommand(options);
   });
 
 program.addHelpText('after', `
@@ -51,11 +52,12 @@ ${chalk.cyan('Examples:')}
   $ prompt-formatter "refactor" -p anthropic
   $ prompt-formatter init
   $ prompt-formatter config --show
+  $ prompt-formatter config --set-api-key
+  $ prompt-formatter config --set-api-key google
 
-${chalk.cyan('Environment:')}
-  GOOGLE_GENERATIVE_AI_API_KEY    Google Gemini (default)
-  ANTHROPIC_API_KEY               Anthropic Claude
-  OPENAI_API_KEY                  OpenAI GPT
+${chalk.cyan('API Keys (in priority order):')}
+  1. Stored config (prompt-formatter config --set-api-key)
+  2. Environment variable
 `);
 
 program.parse();

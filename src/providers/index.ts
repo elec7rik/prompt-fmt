@@ -4,6 +4,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { Provider, PROVIDER_CONFIGS } from '../types.js';
 import { getSystemPrompt } from '../lib/prompts.js';
+import { getStoredApiKey, hasStoredApiKey } from '../lib/config.js';
 
 function getFriendlyErrorMessage(error: unknown, provider: Provider): string {
   const envVar = PROVIDER_CONFIGS[provider].envVar;
@@ -49,11 +50,22 @@ function getFriendlyErrorMessage(error: unknown, provider: Provider): string {
 }
 
 export function hasApiKey(provider: Provider): boolean {
+  // Check stored config first, then environment variable
+  if (hasStoredApiKey(provider)) {
+    return true;
+  }
   const envVar = PROVIDER_CONFIGS[provider].envVar;
   return !!process.env[envVar];
 }
 
 export function getApiKey(provider: Provider): string {
+  // Check stored config first
+  const storedKey = getStoredApiKey(provider);
+  if (storedKey) {
+    return storedKey;
+  }
+
+  // Fall back to environment variable
   const envVar = PROVIDER_CONFIGS[provider].envVar;
   const key = process.env[envVar];
 

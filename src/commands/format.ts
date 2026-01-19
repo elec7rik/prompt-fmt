@@ -2,7 +2,7 @@ import ora from 'ora';
 import chalk from 'chalk';
 import { input, select, password } from '@inquirer/prompts';
 import { FormatOptions, Provider, PROVIDER_CONFIGS } from '../types.js';
-import { getConfig, setProvider } from '../lib/config.js';
+import { getConfig, setProvider, setApiKey } from '../lib/config.js';
 import { copyToClipboard } from '../lib/clipboard.js';
 import { formatPrompt, getApiKey, hasApiKey } from '../providers/index.js';
 import { loadProjectContext, formatContextForPrompt } from '../lib/project-context.js';
@@ -19,8 +19,7 @@ async function interactiveSetup(): Promise<{ provider: Provider; apiKey: string 
     ],
   });
 
-  const envVar = PROVIDER_CONFIGS[provider].envVar;
-  console.log(chalk.dim(`\nTip: Set ${envVar} environment variable to skip this next time.\n`));
+  console.log(chalk.dim(`\nYour API key will be stored securely in the config file.\n`));
 
   const apiKey = await password({
     message: 'Paste your API key:',
@@ -32,9 +31,11 @@ async function interactiveSetup(): Promise<{ provider: Provider; apiKey: string 
     process.exit(1);
   }
 
-  // Save provider preference
+  // Save provider and API key
   setProvider(provider);
+  setApiKey(provider, apiKey);
   console.log(chalk.green(`\n✓ Provider set to: ${provider}`));
+  console.log(chalk.green(`✓ API key saved`));
 
   return { provider, apiKey };
 }
