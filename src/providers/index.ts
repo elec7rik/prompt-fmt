@@ -13,14 +13,26 @@ export class ApiKeyError extends Error {
   }
 }
 
-function getFriendlyErrorMessage(error: unknown, provider: Provider): { message: string; isAuthError: boolean } {
-  const envVar = PROVIDER_CONFIGS[provider].envVar;
+function isAuthRelatedMessage(message: string): boolean {
+  const lowerMessage = message.toLowerCase();
+  return lowerMessage.includes('api key') ||
+         lowerMessage.includes('invalid key') ||
+         lowerMessage.includes('unauthorized') ||
+         lowerMessage.includes('authentication') ||
+         lowerMessage.includes('api_key');
+}
 
+function getFriendlyErrorMessage(error: unknown, provider: Provider): { message: string; isAuthError: boolean } {
   // Handle API errors from the AI SDK
   if (error instanceof APICallError) {
     const status = error.statusCode;
 
     if (status === 401 || status === 403) {
+      return { message: `Invalid API key for ${provider}.`, isAuthError: true };
+    }
+
+    // Check error message for auth-related content (some providers use different status codes)
+    if (error.message && isAuthRelatedMessage(error.message)) {
       return { message: `Invalid API key for ${provider}.`, isAuthError: true };
     }
 
@@ -40,13 +52,12 @@ function getFriendlyErrorMessage(error: unknown, provider: Provider): { message:
 
   // Handle other errors
   if (error instanceof Error) {
-    const message = error.message.toLowerCase();
-
     // Check for auth-related error messages (covers various provider error formats)
-    if (message.includes('api key') || message.includes('invalid key') ||
-        message.includes('unauthorized') || message.includes('authentication')) {
+    if (isAuthRelatedMessage(error.message)) {
       return { message: `Invalid API key for ${provider}.`, isAuthError: true };
     }
+
+    const message = error.message.toLowerCase();
 
     if (message.includes('fetch failed') || message.includes('network') || message.includes('econnrefused')) {
       return { message: 'Network error. Check your internet connection.', isAuthError: false };
