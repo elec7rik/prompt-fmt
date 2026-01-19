@@ -43,4 +43,11 @@ program
     await initCommand(options);
   });
 
+program
+  .command('help')
+  .description('Show help information')
+  .action(() => {
+    program.help();
+  });
+
 program.parse();
