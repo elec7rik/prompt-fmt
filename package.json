@@ -7,6 +7,14 @@
   "bin": {
     "prompt-fmt": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elec7rik/prompt-fmt.git"
+  },
+  "author": "elec7rik",
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/index.ts",
