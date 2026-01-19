@@ -5,11 +5,12 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { Provider, PROVIDER_CONFIGS } from '../types.js';
 import { getSystemPrompt } from '../lib/prompts.js';
 
-export function getApiKey(provider: Provider, overrideKey?: string): string {
-  if (overrideKey) {
-    return overrideKey;
-  }
+export function hasApiKey(provider: Provider): boolean {
+  const envVar = PROVIDER_CONFIGS[provider].envVar;
+  return !!process.env[envVar];
+}
 
+export function getApiKey(provider: Provider): string {
   const envVar = PROVIDER_CONFIGS[provider].envVar;
   const key = process.env[envVar];
 
@@ -47,10 +48,11 @@ export async function formatPrompt(
   input: string,
   provider: Provider,
   apiKey: string,
-  detailed: boolean
+  detailed: boolean,
+  projectContext?: string
 ): Promise<string> {
   const model = getModel(provider, apiKey);
-  const systemPrompt = getSystemPrompt(detailed);
+  const systemPrompt = getSystemPrompt(detailed, projectContext);
 
   const { text } = await generateText({
     model,

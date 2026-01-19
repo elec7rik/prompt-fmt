@@ -2,6 +2,18 @@ export type Provider = 'openai' | 'anthropic' | 'google';
 
 export type Verbosity = 'concise' | 'detailed';
 
+export interface ProjectContext {
+  language?: string;
+  framework?: string;
+  testRunner?: string;
+  directories?: {
+    source?: string;
+    tests?: string;
+    components?: string;
+  };
+  dependencies?: string[];
+}
+
 export interface Config {
   provider: Provider;
   verbosity: Verbosity;

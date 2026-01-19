@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { formatCommand } from './commands/format.js';
 import { configCommand } from './commands/config.js';
+import { initCommand } from './commands/init.js';
 
 const program = new Command();
 
@@ -32,6 +33,14 @@ program
   .option('--set-verbosity <verbosity>', 'Set default verbosity (concise, detailed)')
   .action((options) => {
     configCommand(options);
+  });
+
+program
+  .command('init')
+  .description('Initialize project context for better prompts')
+  .option('-f, --force', 'Reinitialize even if config exists')
+  .action(async (options) => {
+    await initCommand(options);
   });
 
 program.parse();

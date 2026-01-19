@@ -73,6 +73,12 @@ Output:
 - Verify by testing with valid credentials, invalid credentials, and empty fields
 - Out of scope: password reset flow, OAuth`;
 
-export function getSystemPrompt(detailed: boolean): string {
-  return detailed ? DETAILED_SYSTEM_PROMPT : CONCISE_SYSTEM_PROMPT;
+export function getSystemPrompt(detailed: boolean, projectContext?: string): string {
+  const basePrompt = detailed ? DETAILED_SYSTEM_PROMPT : CONCISE_SYSTEM_PROMPT;
+
+  if (projectContext) {
+    return `${basePrompt}\n\n${projectContext}\n\nUse the project context above to make the prompt more specific (reference actual directories, frameworks, and tools when relevant).`;
+  }
+
+  return basePrompt;
 }
